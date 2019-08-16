@@ -38,7 +38,7 @@ python file_test.py
 
 結果が標準出力される
 
-## マイクからの音声認識
+## マイクからの音声認識
 test/mic_test.pyを実行
 
 ```bash
