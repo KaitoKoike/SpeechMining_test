@@ -8,6 +8,8 @@ from google.cloud.speech import enums
 from google.cloud.speech import types
 import pyaudio
 from six.moves import queue
+import requests
+import json
 
 # Audio recording parameters
 RATE = 16000
@@ -133,8 +135,13 @@ def listen_print_loop(responses):
 def main():
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
-    language_code = "ja-JP"
-    #'en-US'  # a BCP-47 language tag
+    language_code = "ja-JP" # a BCP-47 language tag
+    # 英語にしたければ 'en-US' 
+    
+    server_base_url = "http://0.0.0.0:8000/"
+    res = requests.post(server_base_url+"init",data="please do init")
+    print(json.loads(res.text)["ResultSet"])
+    
 
     client = speech.SpeechClient()
     config = types.RecognitionConfig(

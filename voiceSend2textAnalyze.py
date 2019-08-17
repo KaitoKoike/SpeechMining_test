@@ -8,6 +8,8 @@ from google.cloud.speech import enums
 from google.cloud.speech import types
 import pyaudio
 from six.moves import queue
+import requests
+import json
 
 from mic_text import MicrophoneStream
 
@@ -15,7 +17,7 @@ from mic_text import MicrophoneStream
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
-def listen_send_loop(response):
+def listen_send_loop(response,server_base_url):
     """Iterates through server responses and prints them.
 
     The responses passed is a generator that will block until a response
@@ -31,6 +33,7 @@ def listen_send_loop(response):
     final one, print a newline to preserve the finalized transcription.
     """
     num_chars_printed = 0
+
     for response in responses:
         if not response.results:
             continue
@@ -56,7 +59,10 @@ def listen_send_loop(response):
             num_chars_printed = len(transcript)
         else:
             print(transcript + overwrite_chars)
-            
+            text = transcript + overwrite_chars
+            speaker = 1
+            res = requests.post(server_base_url+"appendText",text=text,speaker=speaker)
+            print(json.loads(res.text)["ResultSet"]["text"])
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
             if re.search(r'\b(exit|quit)\b', transcript, re.I):
@@ -71,6 +77,11 @@ def main():
     # for a list of supported languages.
     language_code = "ja-JP"
     #'en-US'  # a BCP-47 language tag
+
+    #テキストを送るサーバーを用意
+    server_base_url = "http://0.0.0.0:8000/"
+    res = requests.post(server_base_url+"init",data="please initialize")
+    print(json.loads(res.text)["ResultSet"]["text"])
 
     client = speech.SpeechClient()
     config = types.RecognitionConfig(
@@ -89,6 +100,6 @@ def main():
         responses = client.streaming_recognize(streaming_config, requests)
 
         # Now, put the transcription responses to use.
-        listen_send_loop(responses)
+        listen_send_loop(responses,server_base_url)
 if __name__ == '__main__':
     main()
