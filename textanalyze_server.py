@@ -33,19 +33,28 @@ def analyze():
     r = request
     flag = r.data
     #何か文字列があれば実施
-    if flag:
+    if queue.__len__()>0:
         content = queue.pop()
         speaker = content["speaker"]
         text = content["text"]
         #*
         # この辺でゴチャゴチャする予定
+        knp_result = knp.parse(text)
+        out = ""
+        for bnst in knp_result.bnst_list(): # 各文節へのアクセス
+            out += "\tID:%d, 見出し:%s, 係り受けタイプ:%s, 親文節ID:%d, 素性:%s" \
+                    % (bnst.bnst_id, "".join(mrph.midasi for mrph in bnst.mrph_list()), bnst.dpndtype, bnst.parent_id, bnst.fstring)
+            out += "\n"
         # 
         # 
         # 
-        # 
-        # *#
-        result = {"speaker":speaker,"data":"君が好き"}
+        # #
+        result = {"speaker":speaker,"text":out,"status":True}
         print(result)
+        return jsonify(ResultSet=result)
+    
+    else:
+        result = {"speaker":None,"data":None,"status":False}
         return jsonify(ResultSet=result)
 
 if __name__ == '__main__':
